@@ -175,7 +175,11 @@ public class VarietyBoggle {
     
     // Function: findWordsUtil
     //
-    // Arguments: final String[][] boggle, final boolean[][] visited, final int(i,j), String str, final ArrayList<String> usedDictionary
+    // Arguments: final String[][] boggle,
+    //                  final boolean[][] visited,
+    //                  final int(i,j),
+    //                  String str,
+    //                  final ArrayList<String> usedDictionary
     //
     // Returns: None
     //
@@ -219,17 +223,22 @@ public class VarietyBoggle {
   
     // Function: findWords
     //
-    // Arguments: final String[][] boggle, final ArrayList<String> dictionary
+    // Arguments: final String[][] boggle,
+    //            final ArrayList<String> dictionary
     //
     // Returns: String[]
     //
-    // Local variables:
+    // Local variables: 
+    //      boolean visited[][],
+    //      String str,
+    // Purpose: return a Stringlist of the found words.
     //
-    // Purpose:
+    // Description: First off the visited variable is declared as the grid size boolean object. Next foundWords is set as a new List object of strings.
+    //              Next it loops over findWordsUtil function, calling it with the coordinates around the chosen letter.
+    //              Next it decl. words as a Stringlist object with the size of foundWords. Lastly we loop, giving words the foundWords, and then return it
     //
-    // Description:
-    //
-    // Change:
+    // Change: Split it into two functions, or just move the visited chech to findWordsUtil. Maybe one function for looping over finWordsUtil coordinates, and one
+    //           for adding the words to a list and then returning it.
 
     // Prints all words present in dictionary. 
     public String[] findWords(final String[][] boggle, final ArrayList<String> dictionary) { 
@@ -248,6 +257,28 @@ public class VarietyBoggle {
         return words;
     }
     
+    // Function: checkWord
+    //
+    // Arguments: final String[][] boggle,
+    //            String word
+    //
+    // Returns: String
+    //
+    // Local variables: foundInBoggleBoard,
+    //                  boolean validWord,
+    //                  boolean foggle,
+    //                  boolean found,
+    //
+    // Purpose: checks if word or expression is valid.
+    //
+    // Description: First of, the function tries to parse to integer, testing for foggle that is. Catching error gives validWord to true if the word exists in dict..
+    //              Next if validWord is true, we replace QU to Q, treating as one character, and replace all letters to only keep numbers.
+    //              Next set visited to a bool grid of boolean objects length. Next we loop and check if the word exists on the board, starting with matching first letter on board.
+    //              Lastly, return OK if word is found and follow criteria, if foggle is true, and hasnt returned earlier, return not valid expr or not in dict.
+    //
+    // Change:
+
+
     public String checkWord(final String[][] boggle, String word) {
         word = word.toUpperCase();
         foundInBoggleBoard = false;
@@ -286,6 +317,29 @@ public class VarietyBoggle {
         }
     }
     
+    // Function: search
+    //
+    // Arguments: final String[][] boggle,
+    //            final String word,
+    //            final int(i,j),
+    //            final int matches,
+    //            final boolean[][] visited
+    //
+    // Returns: boolean
+    //
+    // Local variables: final int[] (dirx, diry),
+    //
+    // Purpose: checks if connected words exists in board.
+    //
+    // Description: First of, set vari. dirx, diry to the coordinates around letter/number. Next check if generousBoggle is set true, else set visited to true.
+    //              Get the size of boggle board. Next check if matches is larger or equal to the length of the word, if so set foundInBoggleBoard to true.
+    //              Next loop  over the word and coordinated and call search to get if word is valid.
+    //              In the loop, if foundInBoggleBoard is true, return true as some brach found the word in the board.
+    //              Else return false as the word was not found in the scope of the first-> last letter.
+    //
+    // Change: To many arguments, really need to simplify and split into more clear and distinct functions. Look at the loop as the directions check is overly complex,
+    //           the direction check could at least be put in a non public function. 
+
     public boolean search(final String[][] boggle, final String word, final int i, final int j, final int matches, final boolean[][] visited) {
         final int[] dirx = { -1, 0, 0, 1 , -1,  1, 1, -1}; //8 directions including diagonals
         final int[] diry = { 0, -1, 1, 0 , -1, -1, 1,  1};
@@ -304,6 +358,24 @@ public class VarietyBoggle {
         return false; //The word was not found on the boggle board
     }
     
+    // Function: server
+    //
+    // Arguments: final int numberPlayers
+    //
+    // Returns: None
+    //
+    // Local variables: final Socket connectionSocket,
+    //                  final ObjectInputStream inFromClient,
+    //                  final ObjectOutputStream outToClient
+    //
+    // Purpose: Starting socket and adding the needed client info to player objects.
+    //
+    // Description: First adds this instance as player, then opens connections if there are online players.
+    //              Next start new socket if number of players are more than 1. Next loop over amount of players and set object for input/output-stream,
+    //              aswell as add new player objects with those client streams.
+    //
+    // Change: Add a wait time for players to connect, not starting as soon as two players are connected.
+
     public void server(final int numberPlayers) throws Exception {
         players.add(new Player(0, null, null, null)); //add this instance as a player
         //Open for connections if there are online players
@@ -319,6 +391,25 @@ public class VarietyBoggle {
         }
         
     }
+
+    // Function: bogglePlay
+    //
+    // Arguments: final Player aPlayer,
+    //            final String playMode
+    //
+    // Returns: None
+    //
+    // Local variables: final String info,
+    //                  final String word,
+    //                  final String check,
+    //
+    // Purpose: Sending information to players and setting words taken depending on game mode.
+    //
+    // Description: First clears battleWords. Next sets info of the game. Send the info and current Boggle board to player then loop while running. 
+    //              In loop while running game check for words in the gamemodes and add if not already done (depending on mode). This also print out information to players
+    //              regarding the words and game mode.
+    //
+    // Change: Set this function to message/info exclusively. Make other function for adding and checking words depending on mode.
     
     public void bogglePlay(final Player aPlayer, final String playMode) {
         battleWords.clear();
@@ -365,7 +456,7 @@ public class VarietyBoggle {
     //
     // Purpose:
     //
-    // Description:
+    // Description: First reds the word dictionary file and sets it to bufferedReader. 
     //
     // Change:
 
