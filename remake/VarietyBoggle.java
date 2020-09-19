@@ -18,19 +18,19 @@ import javax.script.*;
 
 //Templates
 
-// Function:
-//
-// Arguments:
-//
-// Returns:
-//
-// Local variables:
-//
-// Purpose:
-//
-// Description:
-//
-// Change:
+    // Function:
+    //
+    // Arguments:
+    //
+    // Returns:
+    //
+    // Local variables:
+    //
+    // Purpose:
+    //
+    // Description:
+    //
+    // Change:
 
 // Class:
 //
@@ -40,8 +40,15 @@ import javax.script.*;
 //
 // Change:
 
+//-----------------
 
 
+// Class: VarietyBoggle
+//
+// Purpose: Running core methods for gameplay
+//
+// Change: Look at individual functions. This could also be split into two classes, one 
+//         to handle gameplay, another for startup and handling players to Socket. 
 
 public class VarietyBoggle {
 
@@ -453,12 +460,18 @@ public class VarietyBoggle {
     //      showSolution, boolean set default as false
     //      numberOfPLayers, int set default as 2
     //      playmode, String set default as "0"
+    //      threadPool, 
     //
-    // Purpose:
+    // Purpose: Running the program and settings.
     //
-    // Description: First reds the word dictionary file and sets it to bufferedReader. 
+    // Description: First reds the word dictionary file and sets it to bufferedReader.  Print out the Welcome message.
+    //              Next start the scanner to look for chosen game mode. After running it waits for termination at the set time.
+    //              Next calculating score and select winner, then closing Socket. If Settings was selected, wait for user to input
+    //              changes and set it to that. Lastly if test is selected, find words in a 3 by 3.
     //
-    // Change:
+    // Change: Far to big, split into several distinct functions. Does it need to close Socket that way? Maybe ask for another game?
+    //         Loop over a collection of gamemodes, makes it easier to add more modes (not this hardcoded way).
+    //         
 
     public VarietyBoggle() throws Exception {
     	String boardsize = "4x4";

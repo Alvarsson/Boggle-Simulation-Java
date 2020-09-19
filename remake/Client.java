@@ -3,7 +3,34 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+// Class: Client
+//
+// Purpose: Same as function
+//
+// Description: Function Client
+//
+// Change: ....
+
 public class Client {
+
+	// Function: Client
+	//
+	// Arguments: String ipAddress,
+	//
+	// Returns: None
+	//
+	// Local variables: ObjectInputStream inFromServer,
+	//					Scanner in,
+	//					Socket aSocket,
+	//
+	// Purpose: Setting the client stuff needed for players to connect to socket.
+	//
+	// Description: Takes in an ipAddress, First starting a scanner and then tries to connect to server with
+	//				ipAddress. Waiting for socket close message and then making sure to print in correct
+	//				order. 
+	//
+	// Change: Probs some stuff later on...
+	//
     public Client (String ipAddress) {
     	ObjectInputStream inFromServer;
     	Scanner in = new Scanner(System.in);
