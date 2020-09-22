@@ -2,6 +2,8 @@ package remake;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
+import javax.script.*;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
 
@@ -10,9 +12,10 @@ import java.awt.event.KeyEvent;
 //
 // Purpose: To handle player related events and shutdown.
 //
-// Change: Look at individual functions descps.
+// Change: Look at individual functions descps. Make sure that player doesnt handle communication.
+//         Give that to client instead maybe.
 
-class Player {
+public class Player {
     public int playerID;
     public boolean online;
     public Socket connection;

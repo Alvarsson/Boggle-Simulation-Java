@@ -4,16 +4,16 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import javax.script.*;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
 
 /*KNOWN BUGS:
-- Cant change time of game.
+- Cant change time of game?
 - Cant run two games in a row. Only possible if you restart twice now
 - Foggle can only run in 4x4, even if other size has been set.
 - If you choose gamemode 1, then 2, then 3. When it starts, several identical gameboards gets printed.
 
 */
-
-
 
 
 //Templates
@@ -141,6 +141,34 @@ public class VarietyBoggle {
         new VarietyBoggle();
     }
     
+
+    
+    private int calcBoardSize(final String[][] board) {
+        return (int) Math.sqrt(board.length);
+    }
+
+    private List<String[]> shuffleToList(final String[][] board) {
+        final List<String[]> rows = Arrays.asList(board);
+        Collections.shuffle(rows);
+        return rows;
+    }
+    
+    private String[][] randomizeBoard(final String[][] board) {
+        final int size = calcBoardSize(board);
+        final List<String[]> shuffledBoard = shuffleToList(board);
+        final String[][] randomBoard = new String[size][size];
+        int row = 0, col = 0;
+        final Random rnd = new Random();
+
+        for(final String[] i : shuffledBoard) {
+            randomBoard[row][col] = i[rnd.nextInt(6)];
+            col = (col < size-1)? col+1:0;
+            row = (col == 0)? row+1:row;
+        }
+        return randomBoard;
+
+    } 
+
     // Function: randomBoggle
     //
     // Arguments: String[][] boggleDie
@@ -165,15 +193,17 @@ public class VarietyBoggle {
     // Change: Maybe split this into different functions, one for calculating the size of the grid,
     //         one for a simpler randomized String[][] of the template grid.
 
+
     public String[][] randomBoggle(final String[][] boggleDie) {
         final int size = (int) Math.sqrt(boggleDie.length);
         int returnRow=0, returnColumn = 0;
         final Random rnd = new Random();
         final String[][] returnBoggle = new String[size][size];
-        final List<String[]> rows = Arrays.asList(boggleDie);
-        Collections.shuffle(rows);
+        final List<String[]> rows = Arrays.asList(boggleDie); //put into list for shuffleing 
+        Collections.shuffle(rows); //shuffles the list rows.
         for(final String[] row : rows) {
             returnBoggle[returnRow][returnColumn] = row[rnd.nextInt(6)];
+            System.out.println(returnBoggle[returnRow][returnColumn]);
             returnColumn=(returnColumn<(size-1)?returnColumn+1:0);
             returnRow=(returnColumn==0?returnRow+1:returnRow);
         }
@@ -482,14 +512,14 @@ public class VarietyBoggle {
         
 
         try {
-            final FileReader fileReader = new FileReader("CollinsScrabbleWords2019.txt");
+            final FileReader fileReader = new FileReader("remake/dict.txt");
             final BufferedReader bufferedReader = new BufferedReader(fileReader);
             String line = null;
             while ((line = bufferedReader.readLine()) != null) {
                 dictionary.add(line);
             }
             bufferedReader.close();           
-        } catch (final IOException e) {}
+        } catch (final IOException e) {System.out.println(e);}
 
         while(!playmode.equals("!")) {
         System.out.println("**************************************\n" +
