@@ -1,13 +1,12 @@
-package server;
+package server.Modes;
 
 public class StartMenu {
-    //GameModes mode = new GameModes();
 
     public StartMenu(GameModes mode) {
         printMenu(mode);
     }
 
-    private void printMenu(GameModes mode) {
+    public static void printMenu(GameModes mode) {
         //TODO: Get default values to the Start Menu
         System.out.println("**************************************\n" +
                          "*      Welcome to VarietyBoggle      *\n" +
@@ -21,11 +20,11 @@ public class StartMenu {
                          "*    Number of seconds per game: " + mode.getGameTime() + "     ".substring(0, 4-(String.valueOf(mode.getGameTime()).length())) +"*\n"+
                          "**************************************\n" +
                          "* Menu:                              *\n" +
-                         "* [1] Play standard boggle           *\n" +
-                         "* [2] Play battle-boggle             *\n" +
-                         "* [3] Play foggle-boggle             *\n" +
-                         "* [4] Settings                       *\n" +
-                         "* [!] Quit                           *\n" +
+                         "* [standard] Play standard boggle           *\n" +
+                         "* [battle] Play battle-boggle             *\n" +
+                         "* [foggle] Play foggle-boggle             *\n" +
+                         "* [settings] Settings                       *\n" +
+                         "* [quit] Quit                           *\n" +
                          "**************************************\n");
         
 

@@ -8,13 +8,17 @@ public abstract class Player {
     private ObjectInputStream inStream;
     private int id;
     private int score;
+    private ArrayList<String> wordList;
+    private Socket socket;
 
     Player(int id, Socket socket, ObjectInputStream inStream, ObjectOutputStream outStream){
         this.outStream = outStream;
         this.inStream = inStream;
+        this.id = id;
+        this.score = 0;
+        this.wordList = new ArrayList<String>();
+        this.socket = socket;
     }
-
-    //public abstract Boolean HostOnline();
 
     public int getId() {
         return this.id;

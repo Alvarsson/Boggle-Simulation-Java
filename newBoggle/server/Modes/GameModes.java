@@ -1,4 +1,4 @@
-package server;
+package server.Modes;
 
 public class GameModes {
     String boardSize;
@@ -16,6 +16,7 @@ public class GameModes {
         this.showSolution = false;
         this.numberOfPlayers = 2;
         this.gameTime = 30;
+        this.mode = "0";
     }
 
     // SETTERS AND GETTERS
@@ -54,6 +55,16 @@ public class GameModes {
     }
     public int getGameTime() {
         return this.gameTime;
+    }
+    public void setGameMode(String mode) {
+        try {
+            this.mode = mode;
+        } catch () {
+            
+        }
+    }
+    public String getGameMode(){
+        return this.mode;
     }
 
 
