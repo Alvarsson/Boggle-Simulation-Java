@@ -5,14 +5,16 @@ import java.net.*;
 import java.util.*;
 import server.player.*;
 import server.Modes.*;
-
+import java.io.FileNotFoundException;
 
 public class GameController {
-    private String WORDFILE = "CollinsScrabbleWords2019.txt";
+    
     private ArrayList<String> dictionary = new ArrayList<String>();
     private ArrayList<Player> playerArray = new ArrayList<Player>();
     private ServerSocket aSocket;
     private int PORT = 2048;
+    private String WORDFILE = "CollinsScrabbleWords2019.txt";
+    private static Boolean menuRun = true;
 
     
 
@@ -25,39 +27,20 @@ public class GameController {
         //new StartNewGame();
     }
 
-    private static void startNewGame(){
+    private static void startNewGame() throws FileNotFoundException, IOException{
         GameModes gameMode = new GameModes();
-
-        while(gameMode.getGameMode() != "!") {
+        gameMode.loadJsonSettings("gameModes");
+        while(menuRun) {
             StartMenu.printMenu(gameMode);
             Scanner in = new Scanner(System.in);
             String userInput = in.nextLine();
-            if (userInput.equals("settings")) {
-
-            }
-            else {
-                try {
-                    
-                }
-            }
-            /* if (userInput.equals("1")){
-                gameMode.setGameMode("Standard");
-            } else if (userInput.equals("2")){
-                gameMode.setGameMode("Battle");
-            } else if (userInput.equals("3")){
-                gameMode.setGameMode("Foggle");
-            } */
-
-
-
-
+            userChoice(userInput, gameMode, in);
         }
     }
 
     public GameController() {
-        
-
     }
+
     // need to check that number of players > 1 
     private void startServer(int port) throws IOException{
         try {
@@ -107,8 +90,63 @@ public class GameController {
         }
     }
     
+    private static void userChoice(String choice, GameModes mode, Scanner in) throws FileNotFoundException, IOException {
+        if (choice.equals("Settings")) {
+            StartMenu.printSettings(mode);
+            String settingsChoice = in.nextLine();
+            String [] setter = settingsChoice.split(" ", 2);
+            if (setter[1].equals("size")) {
+                if (checkSettings(mode.loadJsonSettings("boardSizes"), setter[0])) {
+                    mode.setBoardSize(setter[0]);
+                }
+            } else if (setter[1].equals("dice")) {
+                    if (setter[0].equals("generous")) {
+                        mode.setGenerous(true);
+                    } else {
+                        mode.setGenerous(false);
+                    }
+            } else if (setter[1].equals("lang")) {
+                System.out.println("GAY");
+                if (checkSettings(mode.loadJsonSettings("languages"), setter[0])) {
+                    System.out.println("teteteY");
+                    mode.setLanguage(setter[0]);
+                }
+            } else if (setter[1].equals("solution")) {
+                if (setter[0].equals("show")) {
+                    mode.setShowSolution(true);
+                } else {
+                    mode.setShowSolution(false);
+                }
+            } else if (setter[1].equals("players")) {
+                int i=Integer.parseInt(setter[0]);  
+                if (i > 1) {
+                    mode.setNumberOfPlayers(i);
+                } else {
+                    System.out.println("Must be 2 or more players.");
+                }
+            } else if (setter[1].equals("seconds")) {
+                int i=Integer.parseInt(setter[0]); 
+                if (i > 0){
+                    mode.setGameTime(i);
+                } else {
+                    System.out.println("Must be 1 or more seconds.");
+                }
+            }
+        } else if (choice.equals("Quit")) {
+            System.out.println("BYE BYE");
+            menuRun = false;
+        } else if (checkSettings(mode.loadJsonSettings("gameModes"), choice)){
+            runGame(choice);
+        }
+    }
 
-
-
-
+    private static Boolean checkSettings(ArrayList<String> list, String word) {
+        for (String setting: list) {
+            if (word.equals(setting)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
+

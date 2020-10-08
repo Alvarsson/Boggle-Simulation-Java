@@ -2,8 +2,7 @@ package server.Modes;
 
 public class StartMenu {
 
-    public StartMenu(GameModes mode) {
-        printMenu(mode);
+    public StartMenu() {
     }
 
     public static void printMenu(GameModes mode) {
@@ -19,24 +18,37 @@ public class StartMenu {
                          "*    Number of players: " + mode.getNumberOfPlayers() + "            *\n"+
                          "*    Number of seconds per game: " + mode.getGameTime() + "     ".substring(0, 4-(String.valueOf(mode.getGameTime()).length())) +"*\n"+
                          "**************************************\n" +
-                         "* Menu:                              *\n" +
+                         getMenu(mode));
+        
+
+        
+    }
+    private static String getMenu(GameModes mode) {
+        String menu = "* Menu:                              \n";
+        for (String game: mode.gameModes) {
+            menu += "* ["+ game + "] Play standard "+ game +"      \n";
+        }
+        return menu += "* [Settings] Settings                \n" +
+        "* [Quit] Quit                        \n" +
+        "**************************************\n";
+    }
+
+    public static void printSettings(GameModes mode) {
+        System.out.println("Settings: \n" + 
+                                   "   Board size (" + mode.getBoardSize() + ") : [4x4 size | 5x5 size]\n"+
+                                   "   Language (" + mode.getLanguage() + ") : [english lang | spanish lang]\n"+
+                                   "   Toggle generous boggle ("+mode.getGenerous()+") : [once dice | generous dice ]\n"+
+                                   "   Toggle show solution ("+mode.getShowSolution()+") : [no solution | show solution]\n"+
+                                   "   Number of players ("+mode.getNumberOfPlayers()+") : [# players]\n"+
+                                   "   Number of seconds per game ("+mode.getGameTime()+") : [# seconds]");
+    }
+}
+/* 
+"* Menu:                              *\n" +
                          "* [standard] Play standard boggle           *\n" +
                          "* [battle] Play battle-boggle             *\n" +
                          "* [foggle] Play foggle-boggle             *\n" +
                          "* [settings] Settings                       *\n" +
                          "* [quit] Quit                           *\n" +
                          "**************************************\n");
-        
-
-        
-    }
-    private void printSettings(GameModes mode) {
-        System.out.println("Settings: \n" + 
-                                   "   Board size (" + mode.getBoardSize() + ") : [4x4 | 5x5]\n"+
-                                   "   Language (" + mode.getLanguage() + ") : [English | Spanish]\n"+
-                                   "   Toggle generous boggle ("+mode.getGenerous()+") : [GenerousBoggle]\n"+
-                                   "   Toggle show solution ("+mode.getShowSolution()+") : [ShowSolution]\n"+
-                                   "   Number of players ("+mode.getNumberOfPlayers()+") : [#]\n"+
-                                   "   Number of seconds per game ("+mode.getGameTime()+") : [# seconds]");
-    }
-}
+*/
