@@ -3,31 +3,32 @@ package server;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
+
 import server.player.*;
 import server.Modes.*;
 import java.io.FileNotFoundException;
 
+//  TODO: dont need to abstract the player class since socket closed reacts to the tcp channel being closed by 
+// throwing an exception.
+
+
+
 public class GameController {
     
     private ArrayList<String> dictionary = new ArrayList<String>();
-    private ArrayList<Player> playerArray = new ArrayList<Player>();
-    private ServerSocket aSocket;
-    private int PORT = 2048;
+    private static ArrayList<Player> playerArray = new ArrayList<Player>();
+    private static ServerSocket serverSocket;
+    public final static int PORT = 2048;
     private String WORDFILE = "CollinsScrabbleWords2019.txt";
     private static Boolean menuRun = true;
-
-    
+    private static Boolean running = false;
 
     public static void main(String argv[]) throws Exception {
         startNewGame();
-        //System.out.println(client.getId());
-        //client.setId(3);
-        //System.out.println(client.getId());
-        //Player localPlayer = new Player();
-        //new StartNewGame();
     }
 
-    private static void startNewGame() throws FileNotFoundException, IOException{
+    private static void startNewGame() throws FileNotFoundException, IOException , InterruptedException{
         GameModes gameMode = new GameModes();
         gameMode.loadJsonSettings("gameModes");
         while(menuRun) {
@@ -38,44 +39,33 @@ public class GameController {
         }
     }
 
-    public GameController() {
-    }
-
     // need to check that number of players > 1 
-    private void startServer(int port) throws IOException{
+    private static void startServer(int port, int players) throws IOException{
         try {
-            aSocket = new ServerSocket(port);
-            System.out.println("Server started"); 
+            serverSocket = new ServerSocket(port);
+            System.out.println("Server started, waiting for players to connect..."); 
+            for(int i=1; i < players; i++) {
+                Socket connectionSocket = serverSocket.accept();
+                ObjectInputStream inFromClient = new ObjectInputStream(connectionSocket.getInputStream());
+                ObjectOutputStream outToClient = new ObjectOutputStream(connectionSocket.getOutputStream());
+                playerArray.add(new ClientPlayer(i, connectionSocket, inFromClient, outToClient));
+            }
+            
         } catch (IOException e) { 
             throw new IOException("Couldn't start server. Exception thrown: "+e); 
         } 
     }
 
      // Should i use this to create the localHost player object?
-    private void createLocalHost() throws IOException {
-        try {
-            startServer(PORT);
+    private static void createLocalHost() {
             playerArray.add(new LocalPlayer(0, null, null, null));
-        } catch (IOException e) {
-            throw new IOException("Could not create localhost. Exception thrown: "+e);
-        }
-        
     }
 
-    private void createPlayers(int numberOfPlayers) throws IOException {
-        try {
-            playerArray.add(new LocalPlayer(0,null,null,null));
-            for(int i=1; i<numberOfPlayers; i++) {
-                Socket connectionSocket = aSocket.accept();
-                ObjectInputStream inFromClient = new ObjectInputStream(connectionSocket.getInputStream());
-                ObjectOutputStream outToClient = new ObjectOutputStream(connectionSocket.getOutputStream());
-                playerArray.add(new ClientPlayer(i, connectionSocket, inFromClient, outToClient));
-            } 
-        } catch (IOException e) {
-            throw new IOException("Did not get the correct socket.");
-        }
-
+    public static void addClientPlayer(Socket socket, ObjectInputStream in, ObjectOutputStream out) {
+        playerArray.add(new ClientPlayer(1,socket,in,out)); // TEST WITH ID 1
     }
+    
+//LOGIC
     private void readScrabble() throws IOException {
         try {
             FileReader fileReader = new FileReader(WORDFILE);
@@ -89,8 +79,14 @@ public class GameController {
             throw new IOException("Couldn't read the Words file. Exception thrown: "+e);
         }
     }
-    
-    private static void userChoice(String choice, GameModes mode, Scanner in) throws FileNotFoundException, IOException {
+    private static void startGame(Player player, GameModes mode) {
+        System.out.println("ln");
+    }
+
+
+
+//HERE
+    private static void userChoice(String choice, GameModes mode, Scanner in) throws FileNotFoundException, IOException, InterruptedException {
         if (choice.equals("Settings")) {
             StartMenu.printSettings(mode);
             String settingsChoice = in.nextLine();
@@ -135,11 +131,16 @@ public class GameController {
         } else if (choice.equals("Quit")) {
             System.out.println("BYE BYE");
             menuRun = false;
-        } else if (checkSettings(mode.loadJsonSettings("gameModes"), choice)){
-            runGame(choice);
+        } else if (checkSettings(mode.loadJsonSettings("gameModes"), choice)) {
+            createLocalHost();
+            startServer(PORT, mode.getNumberOfPlayers());
+            startThreads(choice, mode);
         }
     }
 
+
+
+    //LOGIC
     private static Boolean checkSettings(ArrayList<String> list, String word) {
         for (String setting: list) {
             if (word.equals(setting)) {
@@ -147,6 +148,24 @@ public class GameController {
             }
         }
         return false;
+    }
+
+    private static void startThreads(String choice, GameModes mode) throws IOException, InterruptedException {
+        final int players = mode.getNumberOfPlayers();
+        ExecutorService threadpool = Executors.newFixedThreadPool(players);
+        for(int i=0; i<players; i++) {
+            Player aPlayer = playerArray.get(i);
+            Runnable task = new Runnable() {
+                @Override
+                public void run() {
+                    startGame(aPlayer, mode);
+                }
+            };
+            threadpool.execute(task);
+        }
+        threadpool.awaitTermination(mode.getGameTime(), TimeUnit.SECONDS);
+        running = false;
+        threadpool.shutdownNow();
     }
 }
 
