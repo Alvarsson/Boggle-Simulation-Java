@@ -9,18 +9,23 @@
     "Standard": {
         "sizes" : ["4x4", "5x5"],
         "diceUses": ["once", "generous"],
-        "wordUses": ["multiple"]
+        "wordUses": ["multiple"],
+        "modeType": ["alphabetic"]
     },
 
     "Battle" : {
         "sizes" : ["4x4", "5x5"],
         "diceUses": ["once", "generous"],
-        "wordUses": ["once"]
+        "wordUses": ["once"],
+        "modeType": ["alphabetic"]
     },
 
     "Foggle" : {
         "sizes" : ["4x4"],
         "diceUses": ["once", "generous"],
-        "wordUses": ["once"]
+        "wordUses": ["once"],
+        "modeType": ["numeric"]
     }
+    
+
 }

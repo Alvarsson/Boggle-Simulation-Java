@@ -7,22 +7,34 @@ import java.util.concurrent.*;
 
 import server.player.*;
 import server.Modes.*;
+import server.communication.Communication;
+import server.GameLogic;
 import java.io.FileNotFoundException;
 
 //  TODO: dont need to abstract the player class since socket closed reacts to the tcp channel being closed by 
-// throwing an exception.
+//  throwing an exception.
+// TODO: Read the dictionary at some point
+// TODO: Restructure the logic of gameController
+// TODO: Produce the randomized boggle board.
+
+// BUGGAR:
+//  1. Skickar man in "A" eller icke siffra som antar players i settings så castas NumberFormatException
+
 
 
 
 public class GameController {
     
-    private ArrayList<String> dictionary = new ArrayList<String>();
+    private static ArrayList<String> dictionary = new ArrayList<String>();
     private static ArrayList<Player> playerArray = new ArrayList<Player>();
+    private static ArrayList<String> wordList = new ArrayList<String>();
+    private static String[][] boggleBoard;
     private static ServerSocket serverSocket;
     public final static int PORT = 2048;
     private String WORDFILE = "CollinsScrabbleWords2019.txt";
     private static Boolean menuRun = true;
     private static Boolean running = false;
+    
 
     public static void main(String argv[]) throws Exception {
         startNewGame();
@@ -49,6 +61,8 @@ public class GameController {
                 ObjectInputStream inFromClient = new ObjectInputStream(connectionSocket.getInputStream());
                 ObjectOutputStream outToClient = new ObjectOutputStream(connectionSocket.getOutputStream());
                 playerArray.add(new ClientPlayer(i, connectionSocket, inFromClient, outToClient));
+                System.out.println("Player " + i + " connected.");
+                outToClient.writeObject("You connected to the server as player " + i);
             }
             
         } catch (IOException e) { 
@@ -60,27 +74,36 @@ public class GameController {
     private static void createLocalHost() {
             playerArray.add(new LocalPlayer(0, null, null, null));
     }
-
+ 
     public static void addClientPlayer(Socket socket, ObjectInputStream in, ObjectOutputStream out) {
         playerArray.add(new ClientPlayer(1,socket,in,out)); // TEST WITH ID 1
     }
     
-//LOGIC
-    private void readScrabble() throws IOException {
-        try {
-            FileReader fileReader = new FileReader(WORDFILE);
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
-            String line = null;
-            while ((line = bufferedReader.readLine()) != null) {
-                dictionary.add(line);
+    private static void startGame(Player player, GameModes mode) throws IOException{
+        
+        wordList.clear();
+        Communication messages = new Communication();
+        String startInfo = "PlayerID: " + player.getId() + ", Game Mode: " + mode.getGameMode() + " Boggle, Time Limit: " + mode.getGameTime() + " seconds";
+        boggleBoard = GameLogic.randomizeBoard(BoggleBoards.getBoggleBoard(mode.getGameMode(), mode.getBoardSize()));
+        messages.sendMessage(startInfo, player);
+        messages.sendMessage(boggleBoard, player);
+        //mode.loadJsonGameMode(mode.getGameMode(), "wordUses");
+        while(running){
+            String userInput = messages.readMessage(player);
+            //Continue with this
+            //How to check rules in a general way? Maybe by checking mode.gameMode?
+            if (GameLogic.checkWordTaken(userInput, player, mode, wordList)) {
+                if (GameLogic.checkWordValid(userInput, mode, dictionary)) {
+                    //Maybe oneline the if statements above?
+                    //Continue here where we know that word is valid
+                    //next up is to check if word is on the board.
+                }
+            } else {
+                messages.sendMessage("Already submitted", player);
             }
-            bufferedReader.close();           
-        } catch (IOException e) {
-            throw new IOException("Couldn't read the Words file. Exception thrown: "+e);
         }
-    }
-    private static void startGame(Player player, GameModes mode) {
-        System.out.println("ln");
+
+
     }
 
 
@@ -102,7 +125,6 @@ public class GameController {
                         mode.setGenerous(false);
                     }
             } else if (setter[1].equals("lang")) {
-                System.out.println("GAY");
                 if (checkSettings(mode.loadJsonSettings("languages"), setter[0])) {
                     System.out.println("teteteY");
                     mode.setLanguage(setter[0]);
@@ -132,12 +154,13 @@ public class GameController {
             System.out.println("BYE BYE");
             menuRun = false;
         } else if (checkSettings(mode.loadJsonSettings("gameModes"), choice)) {
+            mode.setGameMode(choice);
             createLocalHost();
             startServer(PORT, mode.getNumberOfPlayers());
+            running = true;
             startThreads(choice, mode);
         }
     }
-
 
 
     //LOGIC
@@ -150,7 +173,7 @@ public class GameController {
         return false;
     }
 
-    private static void startThreads(String choice, GameModes mode) throws IOException, InterruptedException {
+    private static void startThreads(String choice, GameModes mode) throws InterruptedException, IOException {
         final int players = mode.getNumberOfPlayers();
         ExecutorService threadpool = Executors.newFixedThreadPool(players);
         for(int i=0; i<players; i++) {
@@ -158,7 +181,11 @@ public class GameController {
             Runnable task = new Runnable() {
                 @Override
                 public void run() {
-                    startGame(aPlayer, mode);
+                    try {
+                        startGame(aPlayer, mode);
+                    } catch (IOException e) {
+                        System.out.println("IOException thrown, couldn't start game");
+                    }  
                 }
             };
             threadpool.execute(task);

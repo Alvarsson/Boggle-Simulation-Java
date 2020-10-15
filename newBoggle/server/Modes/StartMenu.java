@@ -2,9 +2,6 @@ package server.Modes;
 
 public class StartMenu {
 
-    public StartMenu() {
-    }
-
     public static void printMenu(GameModes mode) {
         //TODO: Get default values to the Start Menu
         System.out.println("**************************************\n" +
@@ -18,11 +15,9 @@ public class StartMenu {
                          "*    Number of players: " + mode.getNumberOfPlayers() + "            *\n"+
                          "*    Number of seconds per game: " + mode.getGameTime() + "     ".substring(0, 4-(String.valueOf(mode.getGameTime()).length())) +"*\n"+
                          "**************************************\n" +
-                         getMenu(mode));
-        
-
-        
+                         getMenu(mode));   
     }
+    
     private static String getMenu(GameModes mode) {
         String menu = "* Menu:                              \n";
         for (String game: mode.gameModes) {
@@ -43,12 +38,3 @@ public class StartMenu {
                                    "   Number of seconds per game ("+mode.getGameTime()+") : [# seconds]");
     }
 }
-/* 
-"* Menu:                              *\n" +
-                         "* [standard] Play standard boggle           *\n" +
-                         "* [battle] Play battle-boggle             *\n" +
-                         "* [foggle] Play foggle-boggle             *\n" +
-                         "* [settings] Settings                       *\n" +
-                         "* [quit] Quit                           *\n" +
-                         "**************************************\n");
-*/

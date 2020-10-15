@@ -1,5 +1,7 @@
 package server.player;
+
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.net.Socket;
 import java.io.*;
 
@@ -19,7 +21,7 @@ public abstract class Player {
         this.wordList = new ArrayList<String>();
         this.socket = socket;
     }
-
+    
     public int getId() {
         return this.id;
     }
@@ -29,6 +31,13 @@ public abstract class Player {
     public int getScore() {
         return this.score;
     }
+    public ObjectOutputStream getOutput() {
+        return this.outStream;
+    }
+    public ObjectInputStream getInput() {
+        return this.inStream;
+    }
+
     public void wordScore(int wordLength) {
         int score = 0;
         if (wordLength == 3 || wordLength == 4) {

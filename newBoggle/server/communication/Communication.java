@@ -1,29 +1,38 @@
 package server.communication;
 import java.io.*;
-import server.communication.MessageParser;
-
+import server.player.Player;
+import server.player.LocalPlayer;
 public class Communication {
-    private ObjectInputStream inFromPlayer;
-    private ObjectOutputStream outToPlayer;
 
     public Communication() {
 
     }
 
-    public void sendMessage(Object msg) throws IOException {
+    public void sendMessage(Object msg, Player player) throws IOException {
         //TODO: make sendMessage so we can send information to players.
         String message = (msg instanceof String[][])?MessageParser.parseBoggle((String[][]) msg):(String) msg;
         try {
-            outToPlayer.writeObject(message);
+            if (player.getId() == 0) {
+                System.out.println(message);
+            } else {
+                player.getOutput().writeObject(message);
+            }
         } catch (IOException e) {
             throw new IOException("Can't send message. Caught exception: "+ e);
         }
     }
 
-    public String readMessage() throws IOException {
-        //TODO: make recieveMessage for players to read information.
+    public String readMessage(Player player) throws IOException {
         try {
-            return ((String) inFromPlayer.readObject());
+            if (player.getId() != 0) {
+                return ((String) player.getInput().readObject());
+            } else if (player.getId() == 0) {
+                //LocalPlayer localPlayer = ((LocalPlayer) player);
+                return ((String) ((LocalPlayer)player).getScanner().nextLine());
+            } else {
+                return "";
+            }
+            
         } catch (IOException e) {
             throw new IOException("Couldn't read message. Caught exception: "+ e);
         } catch (ClassNotFoundException e) {

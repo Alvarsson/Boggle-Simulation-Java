@@ -13,12 +13,12 @@ public class ConnectClient {
     }
 
     private ConnectClient(String ip, int port) throws IOException, InterruptedException {
+        ObjectInputStream inFromServer;
         Scanner in = new Scanner(System.in);
         try {
             Socket socket = new Socket(ip, port);
-            ObjectInputStream inFromServer = new ObjectInputStream(socket.getInputStream());
             ObjectOutputStream outToServer = new ObjectOutputStream(socket.getOutputStream());
-            //GameController.addClientPlayer(socket, inFromServer, outFromServer);
+            inFromServer = new ObjectInputStream(socket.getInputStream());
             Runnable receive = new Runnable() {
 
 				@Override
@@ -28,12 +28,14 @@ public class ConnectClient {
 						try {
 							String message = (String) inFromServer.readObject();
 							if(message.equals("CLOSE SOCKET")) {
-								run=false;
-								socket.close();
-								System.exit(0);
+                                run=false;
+                                in.close();
+                                socket.close();
+                                System.exit(0);
 							}
 							System.out.println(message);					
 						} catch (Exception e) {
+                            in.close();
 							System.out.println("Socket has closed");
 							System.exit(0);
 						}						

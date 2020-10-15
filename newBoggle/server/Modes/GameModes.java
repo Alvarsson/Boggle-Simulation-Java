@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.text.ParseException;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.json.simple.parser.*;
 
 
 public class GameModes  {
@@ -18,7 +22,7 @@ public class GameModes  {
     int numberOfPlayers;
     int gameTime;
     String mode;
-    ArrayList<String> gameModes = new ArrayList();
+    ArrayList<String> gameModes = new ArrayList<String>();
 
     public GameModes() throws FileNotFoundException, IOException{
         this.boardSize = "4x4";
@@ -69,7 +73,9 @@ public class GameModes  {
     public int getGameTime() {
         return this.gameTime;
     }
-    //TODO: set game mode
+    public void setGameMode(String mode) {
+        this.mode = mode;
+    }
     public String getGameMode(){
         return this.mode;
     }
@@ -80,9 +86,9 @@ public class GameModes  {
     // instead return a list so we can ask for any of the possible settings.
     public ArrayList<String> loadJsonSettings(String load) throws FileNotFoundException, JSONException, IOException  {
         String games = "/Users/axelalvarsson/Dropbox/Skola/D7032E Programvaruteknik/newBoggle/server/Modes/games.json";
-        ArrayList<String> settingArray = new ArrayList();
+        ArrayList<String> settingArray = new ArrayList<String>();
+        
         try (FileReader in = new FileReader(games)){
-            
             JSONTokener tokener = new JSONTokener(in);
             JSONObject obj = new JSONObject(tokener);
             JSONArray names = obj.getJSONArray(load);
@@ -100,17 +106,19 @@ public class GameModes  {
     }
 
     // make so that only loads asked for gamemode
-    public void loadJsonGameMode(String load) throws FileNotFoundException, JSONException, IOException  {
+    public ArrayList<String> loadJsonGameMode(String gameMode, String setting) throws FileNotFoundException, JSONException, IOException  {
         String games = "/Users/axelalvarsson/Dropbox/Skola/D7032E Programvaruteknik/newBoggle/server/Modes/games.json";
+        ArrayList<String> modeSetting = new ArrayList<String>();
         try (FileReader in = new FileReader(games)){
             
             JSONTokener tokener = new JSONTokener(in);
             JSONObject obj = new JSONObject(tokener);
-            JSONArray names = obj.getJSONArray(load);
-            for (int i = 0; i < names.length(); i++) {
-                gameModes.add(names.get(i).toString());
+            JSONArray array = obj.getJSONObject(gameMode).getJSONArray(setting);
+            for (int i = 0; i < array.length(); i++) {
+                modeSetting.add(array.get(i).toString());
+                //System.out.println(array.get(i).toString());
             }
-            
+            return modeSetting;
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("Games file not found. Exception thrown: " + e);
         } catch (JSONException e) {
@@ -119,6 +127,4 @@ public class GameModes  {
             throw new IOException("IO reading error. Exception thrown: " + e);
         }
     }
-
-
 }
