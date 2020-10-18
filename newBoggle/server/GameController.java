@@ -25,13 +25,13 @@ import java.io.FileNotFoundException;
 
 public class GameController {
     
-    private static ArrayList<String> dictionary = new ArrayList<String>();
+    private static ArrayList<String> dictionary = new ArrayList<String>(); // WHY not static size
     private static ArrayList<Player> playerArray = new ArrayList<Player>();
     private static ArrayList<String> wordList = new ArrayList<String>();
     private static String[][] boggleBoard;
     private static ServerSocket serverSocket;
     public final static int PORT = 2048;
-    private String WORDFILE = "CollinsScrabbleWords2019.txt";
+    private static String WORDFILE = "server/CollinsScrabbleWords2019.txt";
     private static Boolean menuRun = true;
     private static Boolean running = false;
     
@@ -43,6 +43,7 @@ public class GameController {
     private static void startNewGame() throws FileNotFoundException, IOException , InterruptedException{
         GameModes gameMode = new GameModes();
         gameMode.loadJsonSettings("gameModes");
+        dictionary = GameLogic.loadDictionary(WORDFILE);
         while(menuRun) {
             StartMenu.printMenu(gameMode);
             Scanner in = new Scanner(System.in);
@@ -80,24 +81,40 @@ public class GameController {
     }
     
     private static void startGame(Player player, GameModes mode) throws IOException{
-        
         wordList.clear();
+        GameLogic logic = new GameLogic(); // TODO: Should this only be referenced in static way??
         Communication messages = new Communication();
         String startInfo = "PlayerID: " + player.getId() + ", Game Mode: " + mode.getGameMode() + " Boggle, Time Limit: " + mode.getGameTime() + " seconds";
-        boggleBoard = GameLogic.randomizeBoard(BoggleBoards.getBoggleBoard(mode.getGameMode(), mode.getBoardSize()));
+        boggleBoard = logic.randomizeBoard(BoggleBoards.getBoggleBoard(mode.getGameMode(), mode.getBoardSize()));
         messages.sendMessage(startInfo, player);
         messages.sendMessage(boggleBoard, player);
-        //mode.loadJsonGameMode(mode.getGameMode(), "wordUses");
         while(running){
-            String userInput = messages.readMessage(player);
-            //Continue with this
+            String userWord = messages.readMessage(player);
+            //System.out.println(userWord);
             //How to check rules in a general way? Maybe by checking mode.gameMode?
-            if (GameLogic.checkWordTaken(userInput, player, mode, wordList)) {
-                if (GameLogic.checkWordValid(userInput, mode, dictionary)) {
+            //TODO: refactor this into lower tree complexity
+            if (!logic.checkWordTaken(userWord, player, mode, wordList)) {
+                if (logic.checkWordValid(userWord, mode, dictionary)) {
+                    if (logic.isWordOnBoard(userWord, boggleBoard, mode)) {
+                        wordList.add(userWord);
+                        player.addWord(userWord);
+                        if (logic.getUseWordsOnce(mode)){
+                            for (Player pl: playerArray) {
+                                if (pl != player){
+                                    String msg = "Player id "+ pl.getId() + ", played word:" + userWord;
+                                    messages.sendMessage(msg, pl);
+                                }
+                            }
+                        }
+                    } else {
+                        messages.sendMessage("Word not on board", player);
+                    }
+                } else {
+                    messages.sendMessage("Not Valid", player);
+                }
                     //Maybe oneline the if statements above?
                     //Continue here where we know that word is valid
                     //next up is to check if word is on the board.
-                }
             } else {
                 messages.sendMessage("Already submitted", player);
             }

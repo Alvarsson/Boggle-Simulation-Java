@@ -23,7 +23,7 @@
     "Foggle" : {
         "sizes" : ["4x4"],
         "diceUses": ["once", "generous"],
-        "wordUses": ["once"],
+        "wordUses": ["multiple"],
         "modeType": ["numeric"]
     }
     
