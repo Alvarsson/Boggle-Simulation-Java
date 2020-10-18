@@ -9,6 +9,26 @@ class SmartSearch {
     private char[][] board;
     private static int alphabetSize;
 
+    public static void main(String args[]) 
+    { 
+        // Let the given dictionary be following 
+        String dictionary[] = { "GEEKS", "FOR", "QUIZ", "GEE" }; 
+  
+        // root Node of trie 
+        TrieNode root = new TrieNode(); 
+  
+        // insert all words of dictionary into trie 
+        int n = dictionary.length; 
+        for (int i = 0; i < n; i++) 
+            insert(root, dictionary[i]); 
+  
+        char boggle[][] = { { 'G', 'I', 'Z' }, 
+                            { 'U', 'E', 'K' }, 
+                            { 'Q', 'S', 'E' } }; 
+  
+        findWords(boggle, root); 
+    } 
+    //public SmartSearch(ArrayList<String> dict, char[][] board, int boardSize)
     public SmartSearch(ArrayList<String> dict, char[][] board, int boardSize) {
         this.dictionary = dict.toArray(new String[dict.size()]);
         this.boardSize = boardSize;
