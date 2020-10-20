@@ -6,15 +6,22 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.util.*;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+
 import org.json.JSONException;
 
-import server.SmartSearch;
 import server.Modes.GameModes;
+import server.communication.Communication;
 import server.player.Player;
 
 public class GameLogic {
+    private ScriptEngineManager mgr = new ScriptEngineManager();
+    private ScriptEngine engine = mgr.getEngineByName("JavaScript");
+    private Boolean foundExpression = false;
 
-    String[][] randomizeBoard(String[][] board) {
+    static String[][] randomizeBoard(String[][] board) {
         int size = (int) Math.sqrt(board.length);
         int returnRow = 0, returnColumn = 0;
         Random rnd = new Random();
@@ -29,19 +36,20 @@ public class GameLogic {
         return returnBoggle;
     }
 
-    //checks if word is acceptable against the current mode and if its already taken.
-    Boolean checkWordTaken(String input, Player player, GameModes mode, ArrayList<String> wordList)
+    Boolean checkWordFree(String input, Player player, GameModes mode, ArrayList<String> wordList)
             throws FileNotFoundException, JSONException, IOException {
         if (player.getWords().contains(input)) {
-            return true;
-        } else if (mode.loadJsonGameMode(mode.getGameMode(), "wordUses").contains("once") && wordList.contains(input)) {
-            return true;
-        } else {
             return false;
+        } else if (mode.loadJsonGameMode(mode.getGameMode(), "wordUses").contains("once") && wordList.contains(input)) {
+            return false;
+        } else {
+            return true;
         }
-    } 
-    Boolean checkWordValid(String input, GameModes mode, ArrayList<String> dictionary) throws FileNotFoundException, IOException {
-        if (mode.loadJsonGameMode(mode.getGameMode(), "modeType").contains("numeric")){
+    }
+
+    Boolean checkWordValid(String input, GameModes mode, ArrayList<String> dictionary)
+            throws FileNotFoundException, IOException, ScriptException {
+        if (mode.loadJsonGameMode(mode.getGameMode(), "modeType").contains("numeric")) {
             return checkExpression(input);
         } else if (dictionary.contains(input)) {
             return true;
@@ -49,64 +57,59 @@ public class GameLogic {
             return false;
         }
     }
-    private Boolean checkExpression(String input) {
-        String[] expressions = input.split("(+)|(\\=)");
-        if (expressions[0] + expressions[1] == expressions[2]) {
-            return true;
-        } else {
+
+    private Boolean checkExpression(String input) throws ScriptException {
+        if (input.matches(".*[a-zA-Z]+.*")) { // regex for math expressions, could use ([\\d]|[*/+-])*|[=][\\d]
             return false;
         }
-    }
-    Boolean isWordOnBoard(String word, String[][] board, GameModes mode) {
-        if (word.matches(".*\\d.*")) {
-            word = word.replaceAll("[^\\d]", "");
-            System.out.println(word); // test
-        } else {
-            word = word.replaceAll("QU", "Q");
-            System.out.println(word); // test
+        String[] expression = input.split("=");
+        try {
+            Boolean evaluated = (engine.eval(expression[0])) == (engine.eval(expression[1]));
+            return evaluated;
+        } catch (ScriptException e) {
+            e.printStackTrace();
         }
+        return false;
+    }
+    String isExpressionOnBoard(String expression, String[][] board, GameModes mode) {
+        expression = expression.replaceAll("[^\\d]", "");
+        foundExpression = false;
         final int size = board.length;
         Boolean[][] visited = new Boolean[size][size];
         Boolean found = false;
-        //TODO: This could be done better with BST or even Trie
+        for(Boolean[] vrow : visited) {
+            Arrays.fill(vrow, false);
+        }
         for(int irow=0; irow< size; irow++) {
-            for(Boolean[] vrow : visited) {
-                Arrays.fill(vrow, false);
-                for(int jcol=0; jcol< size; jcol++) {
-                    if(board[irow][jcol].startsWith(word.substring(0,1))) {
-                        //Check if the word exists on the Boggle board
-                        //Start with matching positions on the boggle board 
-                        found = searchWord(board, word, irow, jcol, 1, visited, mode);
+            for(int jcol=0; jcol< size; jcol++) {
+                if(board[irow][jcol].startsWith(expression.substring(0,1))) {
+                    found = searchExpression(board, expression, irow, jcol, 1, visited, mode);
+                }
+            }
+        }
+        return found?"Expression found!":"Expression not found";
+    }
+
+    private Boolean searchExpression(String[][] board,String expr, int i, int j, int match, Boolean[][] visited, GameModes mode) {
+        int[] dirx = { -1, 0, 1, 1 , 1,  0, -1, -1};
+        int[] diry = { -1, -1, -1, 0 , 1, 1, 1,  0};
+        if(!mode.getGenerous())
+            visited[i][j] = true;
+        int boardSize = board.length;
+        if (match >= expr.length()) {foundExpression =  true;} 
+        for (int z = 0; z< 8; z++) {
+            int xSquare = i+dirx[z];
+            int ySquare = j+diry[z];
+            if ( (xSquare >= 0 && ySquare >= 0) && (xSquare < boardSize && ySquare < boardSize) ) {
+                if (!visited[xSquare][ySquare] && match<expr.length()) {
+                    if (expr.substring(match,match+1).equals(board[xSquare][ySquare])) {
+                        searchExpression(board, expr, xSquare, ySquare, match+1, visited, mode);
                     }
                 }
             }
+            if (foundExpression) {return true;} 
         }
-        return found;
-    }
-    //TODO: Refactor this to something better?
-    private Boolean searchWord(String[][] board, String word, int i, int j, int matches, Boolean[][] visited, GameModes mode) {
-        int[] dirx = { -1, 0, 0, 1 , -1,  1, 1, -1}; //8 directions including diagonals
-        int[] diry = { 0, -1, 1, 0 , -1, -1, 1,  1};
-        if(!mode.getGenerous())
-            visited[i][j] = true;
-        int size=board.length;
-        //if(matches>=word.length()) {foundInBoggleBoard=true;} //The word was found on the boggle board
-        for(int z=0; z<8; z++) {
-            if(((i+dirx[z])>=0 && (i+dirx[z])<size) && ((j+diry[z])>=0 && (j+diry[z])<size) && (!visited[i+dirx[z]][j+diry[z]]) && matches<word.length()) {
-                if(word.substring(matches,matches+1).equals(board[i+dirx[z]][j+diry[z]])) {
-                    searchWord(board, word, i+dirx[z], j+diry[z], matches+1, visited, mode);
-                }
-            }
-            if (matches>=word.length()) {
-                return true;
-            }
-            //if(foundInBoggleBoard) return true; //some branch found the word in the boggleboard
-        }
-        return false; //The word was not found on the boggle board
-    }
-    public void searchWord(ArrayList<String> dict, String[][] board, int boardSize) {
-
-        SmartSearch search = new SmartSearch(dict,);
+        return false;
     }
 
     public Boolean getUseWordsOnce(GameModes mode) throws FileNotFoundException, JSONException, IOException {
@@ -116,6 +119,9 @@ public class GameLogic {
         return false;
     }
 
+    public static int calculateScore(Player player) {
+        return player.calculateScore();
+    }
 
     static ArrayList<String> loadDictionary(String WORDFILE) throws FileNotFoundException, IOException{
         ArrayList<String> dictionary = new ArrayList<String>();
@@ -134,6 +140,15 @@ public class GameLogic {
             throw new IOException("Could not read the file. Exception thrown: "+ e);
         }
     }
-
-
+    static void printEndScore(ArrayList<Player> playerArray) throws IOException {
+        Communication msg = new Communication();
+        String finalScore = "";
+        for (Player player : playerArray) {
+            finalScore += "Player "+player.getId()+" got "+ GameLogic.calculateScore(player)+" points.\n";
+            //msg.sendMessage(""+ String.valueOf(score), player);
+        }
+        for (Player player : playerArray) {
+            msg.sendMessage(finalScore,player);
+        }
+    }
 }

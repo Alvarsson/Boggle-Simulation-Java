@@ -5,11 +5,11 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import javax.script.ScriptException;
+
 import server.player.*;
 import server.Modes.*;
 import server.communication.Communication;
-import server.GameLogic;
-import java.io.FileNotFoundException;
 
 //  TODO: dont need to abstract the player class since socket closed reacts to the tcp channel being closed by 
 //  throwing an exception.
@@ -20,12 +20,10 @@ import java.io.FileNotFoundException;
 // BUGGAR:
 //  1. Skickar man in "A" eller icke siffra som antar players i settings så castas NumberFormatException
 
-
-
-
 public class GameController {
     
     private static ArrayList<String> dictionary = new ArrayList<String>(); // WHY not static size
+    private static ArrayList<String> gameDict = new ArrayList<String>();
     private static ArrayList<Player> playerArray = new ArrayList<Player>();
     private static ArrayList<String> wordList = new ArrayList<String>();
     private static String[][] boggleBoard;
@@ -40,7 +38,7 @@ public class GameController {
         startNewGame();
     }
 
-    private static void startNewGame() throws FileNotFoundException, IOException , InterruptedException{
+    private static void startNewGame() throws FileNotFoundException, IOException , InterruptedException , ScriptException{
         GameModes gameMode = new GameModes();
         gameMode.loadJsonSettings("gameModes");
         dictionary = GameLogic.loadDictionary(WORDFILE);
@@ -75,27 +73,31 @@ public class GameController {
     private static void createLocalHost() {
             playerArray.add(new LocalPlayer(0, null, null, null));
     }
- 
-    public static void addClientPlayer(Socket socket, ObjectInputStream in, ObjectOutputStream out) {
+  
+    /* private static void addClientPlayer(Socket socket, ObjectInputStream in, ObjectOutputStream out) {
         playerArray.add(new ClientPlayer(1,socket,in,out)); // TEST WITH ID 1
-    }
+    } */
     
-    private static void startGame(Player player, GameModes mode) throws IOException{
+    private static void startGame(Player player, GameModes mode, String[][] boggleBoard) throws IOException, ScriptException{
         wordList.clear();
         GameLogic logic = new GameLogic(); // TODO: Should this only be referenced in static way??
         Communication messages = new Communication();
         String startInfo = "PlayerID: " + player.getId() + ", Game Mode: " + mode.getGameMode() + " Boggle, Time Limit: " + mode.getGameTime() + " seconds";
-        boggleBoard = logic.randomizeBoard(BoggleBoards.getBoggleBoard(mode.getGameMode(), mode.getBoardSize()));
+        
         messages.sendMessage(startInfo, player);
         messages.sendMessage(boggleBoard, player);
+
         while(running){
             String userWord = messages.readMessage(player);
-            //System.out.println(userWord);
             //How to check rules in a general way? Maybe by checking mode.gameMode?
             //TODO: refactor this into lower tree complexity
-            if (!logic.checkWordTaken(userWord, player, mode, wordList)) {
-                if (logic.checkWordValid(userWord, mode, dictionary)) {
-                    if (logic.isWordOnBoard(userWord, boggleBoard, mode)) {
+            if (logic.checkWordFree(userWord, player, mode, wordList)) {
+                if (logic.checkWordValid(userWord, mode, gameDict)) { 
+                    // check if numbers
+                    if (mode.loadJsonGameMode(mode.getGameMode(), "modeType").contains("numeric")) {
+                        messages.sendMessage(logic.isExpressionOnBoard(userWord, boggleBoard,mode), player);
+                    } else {
+                        messages.sendMessage("OK", player);
                         wordList.add(userWord);
                         player.addWord(userWord);
                         if (logic.getUseWordsOnce(mode)){
@@ -105,28 +107,15 @@ public class GameController {
                                     messages.sendMessage(msg, pl);
                                 }
                             }
-                        }
-                    } else {
-                        messages.sendMessage("Word not on board", player);
+                        } 
                     }
-                } else {
-                    messages.sendMessage("Not Valid", player);
-                }
-                    //Maybe oneline the if statements above?
-                    //Continue here where we know that word is valid
-                    //next up is to check if word is on the board.
-            } else {
-                messages.sendMessage("Already submitted", player);
-            }
+                } else {messages.sendMessage("Not Valid", player);}
+            } else {messages.sendMessage("Already submitted", player);}
+            messages.sendMessage(boggleBoard, player);
         }
-
-
     }
 
-
-
-//HERE
-    private static void userChoice(String choice, GameModes mode, Scanner in) throws FileNotFoundException, IOException, InterruptedException {
+    private static void userChoice(String choice, GameModes mode, Scanner in) throws FileNotFoundException, IOException, InterruptedException, ScriptException {
         if (choice.equals("Settings")) {
             StartMenu.printSettings(mode);
             String settingsChoice = in.nextLine();
@@ -172,14 +161,19 @@ public class GameController {
             menuRun = false;
         } else if (checkSettings(mode.loadJsonSettings("gameModes"), choice)) {
             mode.setGameMode(choice);
+            boggleBoard = GameLogic.randomizeBoard(BoggleBoards.getBoggleBoard(mode.getGameMode(), mode.getBoardSize()));
+            if (!mode.loadJsonGameMode(mode.getGameMode(), "modeType").contains("numeric")) {
+                SmartSearch newdict = new SmartSearch(dictionary, boggleBoard, boggleBoard.length);
+                gameDict = newdict.getCurrentDict();
+            }
             createLocalHost();
             startServer(PORT, mode.getNumberOfPlayers());
             running = true;
             startThreads(choice, mode);
+            GameLogic.printEndScore(playerArray);
+            endGame(); 
         }
     }
-
-
     //LOGIC
     private static Boolean checkSettings(ArrayList<String> list, String word) {
         for (String setting: list) {
@@ -190,7 +184,7 @@ public class GameController {
         return false;
     }
 
-    private static void startThreads(String choice, GameModes mode) throws InterruptedException, IOException {
+    private static void startThreads(String choice, GameModes mode) throws InterruptedException, IOException, ScriptException {
         final int players = mode.getNumberOfPlayers();
         ExecutorService threadpool = Executors.newFixedThreadPool(players);
         for(int i=0; i<players; i++) {
@@ -199,10 +193,13 @@ public class GameController {
                 @Override
                 public void run() {
                     try {
-                        startGame(aPlayer, mode);
+                        startGame(aPlayer, mode, boggleBoard);
                     } catch (IOException e) {
-                        System.out.println("IOException thrown, couldn't start game");
-                    }  
+                        e.printStackTrace();
+                        //System.out.println("IOException thrown, couldn't start game");
+                    } catch (ScriptException e) {
+                        new ScriptException("Error evaluating expression: "+e);
+                    }
                 }
             };
             threadpool.execute(task);
@@ -210,6 +207,21 @@ public class GameController {
         threadpool.awaitTermination(mode.getGameTime(), TimeUnit.SECONDS);
         running = false;
         threadpool.shutdownNow();
+    }
+    static void endGame() throws IOException {
+        Communication msg = new Communication();
+        for (Player player : playerArray){
+            try {
+                if (player.getId() != 0) {
+                    msg.sendMessage("CLOSE SOCKET", player);
+                    player.getSocket().close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        playerArray.clear();
+        serverSocket.close();
     }
 }
 

@@ -31,11 +31,11 @@ public class ConnectClient {
                                 run=false;
                                 in.close();
                                 socket.close();
+
                                 System.exit(0);
 							}
 							System.out.println(message);					
 						} catch (Exception e) {
-                            in.close();
 							System.out.println("Socket has closed");
 							System.exit(0);
 						}						

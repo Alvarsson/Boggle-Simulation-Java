@@ -1,7 +1,7 @@
 package server.player;
 
 import java.util.ArrayList;
-import java.util.Scanner;
+//import java.util.Scanner;
 import java.net.Socket;
 import java.io.*;
 
@@ -28,8 +28,8 @@ public abstract class Player {
     public void setId(int id) {
         this.id = id;
     }
-    public int getScore() {
-        return this.score;
+    public Socket getSocket() {
+        return this.socket;
     }
     public ObjectOutputStream getOutput() {
         return this.outStream;
@@ -38,20 +38,28 @@ public abstract class Player {
         return this.inStream;
     }
 
-    public void wordScore(int wordLength) {
-        int score = 0;
-        if (wordLength == 3 || wordLength == 4) {
-            score = 1;
-        } else if (wordLength == 5) {
-            score = 2;
-        } else if (wordLength == 6) {
-            score = 3;
-        } else if (wordLength == 7) {
-            score = 5;
-        } else if (wordLength == 8) {
-            score = 11;
+    public int calculateScore() {
+        if (wordList.isEmpty()){
+            return 0;
+        } else if (wordList.get(0).startsWith("\\d")) {
+            for (int i = 0; i < wordList.size(); i++) {
+                wordList.set(i, wordList.get(i).replaceAll("[^\\d]", ""));
+            }
         }
-        this.score = score;
+        for (int i = 0; i < wordList.size(); i++) {
+            if (wordList.get(i).length() == 3 || wordList.get(i).length() == 4) {
+                this.score += 1;
+            } else if (wordList.get(i).length() == 5) {
+                this.score += 2;
+            } else if (wordList.get(i).length() == 6) {
+                this.score += 3;
+            } else if (wordList.get(i).length() == 7) {
+                this.score += 5;
+            } else if (wordList.get(i).length() == 8) {
+                this.score += 11;
+            }
+        }
+        return this.score;
     }
     public ArrayList<String> getWords() {
         return this.wordList;

@@ -8,43 +8,39 @@ class SmartSearch {
     private int dictLength;
     private char[][] board;
     private static int alphabetSize;
+    private static ArrayList<String> gameDict = new ArrayList<String>();
 
-    public static void main(String args[]) 
-    { 
-        // Let the given dictionary be following 
-        String dictionary[] = { "GEEKS", "FOR", "QUIZ", "GEE" }; 
-  
-        // root Node of trie 
-        TrieNode root = new TrieNode(); 
-  
-        // insert all words of dictionary into trie 
-        int n = dictionary.length; 
-        for (int i = 0; i < n; i++) 
-            insert(root, dictionary[i]); 
-  
-        char boggle[][] = { { 'G', 'I', 'Z' }, 
-                            { 'U', 'E', 'K' }, 
-                            { 'Q', 'S', 'E' } }; 
-  
-        findWords(boggle, root); 
-    } 
-    //public SmartSearch(ArrayList<String> dict, char[][] board, int boardSize)
-    public SmartSearch(ArrayList<String> dict, char[][] board, int boardSize) {
+    public SmartSearch(ArrayList<String> dict, String[][] board, int boardSize) {
         this.dictionary = dict.toArray(new String[dict.size()]);
         this.boardSize = boardSize;
         this.alphabetSize = 26;
-        this.board = board;
+        this.board = restructBoard(board);
         this.dictLength = dict.size();
+
         TrieNode root = new TrieNode();
-        for (int i = 0; i < dictLength; i++) {
+        for (int i = 0; i < this.dictLength; i++) {
             insert(root, this.dictionary[i]);
         }
-        findWords(board, root);
+        findWords(this.board, root);
+    }
+    ArrayList<String> getCurrentDict() {
+        return gameDict;
+    }
+    static char[][] restructBoard(String[][] board) {
+        char[][] charBoard = new char[boardSize][boardSize]; 
+        for (int i = 0; i < boardSize; i ++) {
+            for (int j = 0; j <boardSize; j++) {
+                if (board[i][j].length() > 1) {
+                    board[i][j] = "Q";
+                }
+                charBoard[i][j] = board[i][j].charAt(0);
+            } 
+        }
+        return charBoard;
     }
 
     static class TrieNode {
         // English alphabet size
-        
         TrieNode[] Child = new TrieNode[alphabetSize];
         Boolean leaf;
 
@@ -60,15 +56,12 @@ class SmartSearch {
         // Mark all characters as not visited 
         boolean[][] visited = new boolean[boardSize][boardSize]; 
         TrieNode pChild = root; 
-  
         String str = ""; 
-  
         // traverse all matrix elements 
         for (int i = 0; i < boardSize; i++) { 
             for (int j = 0; j < boardSize; j++) { 
                 // we start searching for word in dictionary 
-                // if we found a character which is child 
-                // of Trie root 
+                // if we found a character which is child of Trie root 
                 if (pChild.Child[(boggle[i][j]) - 'A'] != null) { 
                     str = str + boggle[i][j]; 
                     searchWord(pChild.Child[(boggle[i][j]) - 'A'], 
@@ -79,11 +72,9 @@ class SmartSearch {
         } 
     } 
 
-    static void insert(TrieNode root, String Key) 
-    { 
+    static void insert(TrieNode root, String Key) { 
         int n = Key.length(); 
         TrieNode pChild = root; 
-  
         for (int i = 0; i < n; i++) { 
             int index = Key.charAt(i) - 'A'; 
   
@@ -92,17 +83,15 @@ class SmartSearch {
   
             pChild = pChild.Child[index]; 
         } 
-  
         // make last node as leaf node 
         pChild.leaf = true; 
     } 
 
-    static void searchWord(TrieNode root, char boggle[][], int i, 
-                           int j, boolean visited[][], String str) 
-    { 
+    static void searchWord(TrieNode root, char boggle[][], int i, int j, boolean visited[][], String str) { 
         // if we found word in trie / dictionary 
         if (root.leaf == true) 
-            System.out.println(str); 
+            gameDict.add(str);
+            //System.out.println(str); 
   
         // If both I and j in  range and we visited 
         // that element of matrix first time 
