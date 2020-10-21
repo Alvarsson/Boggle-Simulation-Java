@@ -1,15 +1,13 @@
-package server.communication;
+package projectBoggle.communication;
 import java.io.*;
-import server.player.Player;
-import server.player.LocalPlayer;
-public class Communication {
+import projectBoggle.player.Player;
+import projectBoggle.player.LocalPlayer;
 
+public class Communication {
     public Communication() {
 
     }
-
     public void sendMessage(Object msg, Player player) throws IOException {
-        //TODO: make sendMessage so we can send information to players.
         String message = (msg instanceof String[][])?MessageParser.parseBoggle((String[][]) msg):(String) msg;
         try {
             if (player.getId() == 0) {

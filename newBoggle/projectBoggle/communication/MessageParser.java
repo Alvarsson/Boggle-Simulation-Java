@@ -1,8 +1,6 @@
-package server.communication;
-
+package projectBoggle.communication;
 
 public class MessageParser {
-
 
     public static String parseBoggle(String[][] currentBoard) {
         String boggleBoard = "";

@@ -1,4 +1,5 @@
-package server.Modes;
+package projectBoggle.printouts;
+
 public class BoggleBoards {
     private static String[][] boggle16 = {{"R", "I", "F", "O", "B", "X"},
     {"I", "F", "E", "H", "E", "Y"},

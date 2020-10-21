@@ -1,4 +1,6 @@
-package server.Modes;
+package projectBoggle.printouts;
+
+import projectBoggle.modes.GameModes;
 
 public class StartMenu {
 
@@ -20,7 +22,7 @@ public class StartMenu {
     
     private static String getMenu(GameModes mode) {
         String menu = "* Menu:                              \n";
-        for (String game: mode.gameModes) {
+        for (String game: mode.getAllModes()) {
             menu += "* ["+ game + "] Play standard "+ game +"      \n";
         }
         return menu += "* [Settings] Settings                \n" +

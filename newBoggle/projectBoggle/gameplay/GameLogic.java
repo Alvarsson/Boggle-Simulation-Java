@@ -1,4 +1,4 @@
-package server;
+package projectBoggle.gameplay;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -9,12 +9,11 @@ import java.util.*;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-
 import org.json.JSONException;
 
-import server.Modes.GameModes;
-import server.communication.Communication;
-import server.player.Player;
+import projectBoggle.modes.GameModes;
+import projectBoggle.communication.Communication;
+import projectBoggle.player.Player;
 
 public class GameLogic {
     private ScriptEngineManager mgr = new ScriptEngineManager();
@@ -119,7 +118,7 @@ public class GameLogic {
         return false;
     }
 
-    public static int calculateScore(Player player) {
+    public static int calculatePlayerScore(Player player) {
         return player.calculateScore();
     }
 
@@ -144,8 +143,7 @@ public class GameLogic {
         Communication msg = new Communication();
         String finalScore = "";
         for (Player player : playerArray) {
-            finalScore += "Player "+player.getId()+" got "+ GameLogic.calculateScore(player)+" points.\n";
-            //msg.sendMessage(""+ String.valueOf(score), player);
+            finalScore += "Player "+player.getId()+" got "+ calculatePlayerScore(player)+" points.\n";
         }
         for (Player player : playerArray) {
             msg.sendMessage(finalScore,player);

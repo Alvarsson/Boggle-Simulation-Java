@@ -1,4 +1,4 @@
-package server;
+package projectBoggle.gameplay;
 
 import java.io.*;
 import java.net.*;
@@ -7,18 +7,11 @@ import java.util.concurrent.*;
 
 import javax.script.ScriptException;
 
-import server.player.*;
-import server.Modes.*;
-import server.communication.Communication;
-
-//  TODO: dont need to abstract the player class since socket closed reacts to the tcp channel being closed by 
-//  throwing an exception.
-// TODO: Read the dictionary at some point
-// TODO: Restructure the logic of gameController
-// TODO: Produce the randomized boggle board.
-
-// BUGGAR:
-//  1. Skickar man in "A" eller icke siffra som antar players i settings så castas NumberFormatException
+import projectBoggle.gameplay.gridsolvers.*;
+import projectBoggle.player.*;
+import projectBoggle.modes.*;
+import projectBoggle.printouts.*;
+import projectBoggle.communication.Communication;
 
 public class GameController {
     
@@ -29,19 +22,14 @@ public class GameController {
     private static String[][] boggleBoard;
     private static ServerSocket serverSocket;
     public final static int PORT = 2048;
-    private static String WORDFILE = "server/CollinsScrabbleWords2019.txt";
+    private static String WORDFILE = "projectBoggle/dictionaries/CollinsScrabbleWords2019.txt";
     private static Boolean menuRun = true;
     private static Boolean running = false;
-    
 
-    public static void main(String argv[]) throws Exception {
-        startNewGame();
-    }
-
-    private static void startNewGame() throws FileNotFoundException, IOException , InterruptedException , ScriptException{
+    public static void startNewGame() throws FileNotFoundException, IOException , InterruptedException , ScriptException{
         GameModes gameMode = new GameModes();
         gameMode.loadJsonSettings("gameModes");
-        dictionary = GameLogic.loadDictionary(WORDFILE);
+        dictionary = GameLogic.loadDictionary(WORDFILE); // Don't need to read that before mode has been set?
         while(menuRun) {
             StartMenu.printMenu(gameMode);
             Scanner in = new Scanner(System.in);
@@ -69,7 +57,6 @@ public class GameController {
         } 
     }
 
-     // Should i use this to create the localHost player object?
     private static void createLocalHost() {
             playerArray.add(new LocalPlayer(0, null, null, null));
     }
@@ -78,7 +65,7 @@ public class GameController {
         playerArray.add(new ClientPlayer(1,socket,in,out)); // TEST WITH ID 1
     } */
     
-    private static void startGame(Player player, GameModes mode, String[][] boggleBoard) throws IOException, ScriptException{
+    private static void runGame(Player player, GameModes mode, String[][] boggleBoard) throws IOException, ScriptException{
         wordList.clear();
         GameLogic logic = new GameLogic(); // TODO: Should this only be referenced in static way??
         Communication messages = new Communication();
@@ -174,7 +161,8 @@ public class GameController {
             endGame(); 
         }
     }
-    //LOGIC
+
+    //LOGIC MOVE
     private static Boolean checkSettings(ArrayList<String> list, String word) {
         for (String setting: list) {
             if (word.equals(setting)) {
@@ -193,7 +181,7 @@ public class GameController {
                 @Override
                 public void run() {
                     try {
-                        startGame(aPlayer, mode, boggleBoard);
+                        runGame(aPlayer, mode, boggleBoard);
                     } catch (IOException e) {
                         e.printStackTrace();
                         //System.out.println("IOException thrown, couldn't start game");

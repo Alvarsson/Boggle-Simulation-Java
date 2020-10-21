@@ -1,10 +1,11 @@
+package projectBoggle;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
-import server.GameController;
+import projectBoggle.gameplay.GameController;
 
 public class ConnectClient {
 

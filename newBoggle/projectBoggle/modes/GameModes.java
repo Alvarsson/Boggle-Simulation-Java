@@ -1,18 +1,14 @@
-package server.Modes;
+package projectBoggle.modes;
 
 import java.util.ArrayList;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-//import java.io.Reader;
-//import java.text.ParseException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-//import org.json.simple.parser.*;
-
 
 public class GameModes  {
     String boardSize;
@@ -85,7 +81,7 @@ public class GameModes  {
 
     // instead return a list so we can ask for any of the possible settings.
     public ArrayList<String> loadJsonSettings(String load) throws FileNotFoundException, JSONException, IOException  {
-        String games = "/Users/axelalvarsson/Dropbox/Skola/D7032E Programvaruteknik/newBoggle/server/Modes/games.json";
+        String games = "projectBoggle/modes/games.json";
         ArrayList<String> settingArray = new ArrayList<String>();
         
         try (FileReader in = new FileReader(games)){
@@ -107,7 +103,7 @@ public class GameModes  {
 
     // make so that only loads asked for gamemode
     public ArrayList<String> loadJsonGameMode(String gameMode, String setting) throws FileNotFoundException, JSONException, IOException  {
-        String games = "/Users/axelalvarsson/Dropbox/Skola/D7032E Programvaruteknik/newBoggle/server/Modes/games.json";
+        String games = "projectBoggle/modes/games.json";
         ArrayList<String> modeSetting = new ArrayList<String>();
         try (FileReader in = new FileReader(games)){
             

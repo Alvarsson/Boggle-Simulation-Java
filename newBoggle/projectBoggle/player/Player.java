@@ -1,7 +1,6 @@
-package server.player;
+package projectBoggle.player;
 
 import java.util.ArrayList;
-//import java.util.Scanner;
 import java.net.Socket;
 import java.io.*;
 

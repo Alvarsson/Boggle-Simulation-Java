@@ -1,5 +1,5 @@
-package server.player;
-import java.util.ArrayList;
+package projectBoggle.player;
+
 import java.util.Scanner;
 import java.net.Socket;
 import java.io.*;

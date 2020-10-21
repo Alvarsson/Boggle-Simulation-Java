@@ -1,8 +1,8 @@
-package server;
+package projectBoggle.gameplay.gridsolvers;
 
 import java.util.ArrayList;
 
-class SmartSearch {
+public class SmartSearch {
     private String[] dictionary;
     private static int boardSize;
     private int dictLength;
@@ -10,12 +10,17 @@ class SmartSearch {
     private static int alphabetSize;
     private static ArrayList<String> gameDict = new ArrayList<String>();
 
+    /* 
+    Implementation of the trie Node Binary search tree algorithm
+
+    */
     public SmartSearch(ArrayList<String> dict, String[][] board, int boardSize) {
         this.dictionary = dict.toArray(new String[dict.size()]);
         this.boardSize = boardSize;
         this.alphabetSize = 26;
         this.board = restructBoard(board);
         this.dictLength = dict.size();
+        this.gameDict.clear();
 
         TrieNode root = new TrieNode();
         for (int i = 0; i < this.dictLength; i++) {
@@ -23,10 +28,10 @@ class SmartSearch {
         }
         findWords(this.board, root);
     }
-    ArrayList<String> getCurrentDict() {
+    public ArrayList<String> getCurrentDict() {
         return gameDict;
     }
-    static char[][] restructBoard(String[][] board) {
+    private static char[][] restructBoard(String[][] board) {
         char[][] charBoard = new char[boardSize][boardSize]; 
         for (int i = 0; i < boardSize; i ++) {
             for (int j = 0; j <boardSize; j++) {
@@ -39,7 +44,7 @@ class SmartSearch {
         return charBoard;
     }
 
-    static class TrieNode {
+    private static class TrieNode {
         // English alphabet size
         TrieNode[] Child = new TrieNode[alphabetSize];
         Boolean leaf;
@@ -51,51 +56,48 @@ class SmartSearch {
         }
     }
 
-    static void findWords(char boggle[][], TrieNode root) 
-    { 
+    private static void findWords(char boggle[][], TrieNode root) { 
         // Mark all characters as not visited 
         boolean[][] visited = new boolean[boardSize][boardSize]; 
-        TrieNode pChild = root; 
-        String str = ""; 
-        // traverse all matrix elements 
+        TrieNode rootChild = root; 
+        String word = ""; 
+        // traverse all elements 
         for (int i = 0; i < boardSize; i++) { 
             for (int j = 0; j < boardSize; j++) { 
-                // we start searching for word in dictionary 
-                // if we found a character which is child of Trie root 
-                if (pChild.Child[(boggle[i][j]) - 'A'] != null) { 
-                    str = str + boggle[i][j]; 
-                    searchWord(pChild.Child[(boggle[i][j]) - 'A'], 
-                               boggle, i, j, visited, str); 
-                    str = ""; 
+                // search for word in dictionary if find character Trie root 
+                if (rootChild.Child[(boggle[i][j]) - 'A'] != null) { 
+                    word = word + boggle[i][j]; 
+                    searchWord(rootChild.Child[(boggle[i][j]) - 'A'], 
+                               boggle, i, j, visited, word); 
+                    word = ""; 
                 } 
             } 
         } 
     } 
 
-    static void insert(TrieNode root, String Key) { 
+    private static void insert(TrieNode root, String Key) { 
         int n = Key.length(); 
-        TrieNode pChild = root; 
+        TrieNode rootChild = root; 
         for (int i = 0; i < n; i++) { 
             int index = Key.charAt(i) - 'A'; 
   
-            if (pChild.Child[index] == null) 
-                pChild.Child[index] = new TrieNode(); 
+            if (rootChild.Child[index] == null) 
+                rootChild.Child[index] = new TrieNode(); 
   
-            pChild = pChild.Child[index]; 
+            rootChild = rootChild.Child[index]; 
         } 
         // make last node as leaf node 
-        pChild.leaf = true; 
+        rootChild.leaf = true; 
     } 
 
-    static void searchWord(TrieNode root, char boggle[][], int i, int j, boolean visited[][], String str) { 
+    private static void searchWord(TrieNode root, char boggle[][], int i, int j, boolean visited[][], String str) { 
         // if we found word in trie / dictionary 
         if (root.leaf == true) 
             gameDict.add(str);
-            //System.out.println(str); 
   
-        // If both I and j in  range and we visited 
+        // If i and j in range + visited element  
         // that element of matrix first time 
-        if (isSafe(i, j, visited)) { 
+        if (checkCurrentSquare(i, j, visited)) { 
             // make it visited 
             visited[i][j] = true; 
   
@@ -103,61 +105,58 @@ class SmartSearch {
             for (int K = 0; K < alphabetSize; K++) { 
                 if (root.Child[K] != null) { 
                     // current character 
-                    char ch = (char)(K + 'A'); 
+                    char character = (char)(K + 'A'); 
   
-                    // Recursively search reaming character of word 
-                    // in trie for all 8 adjacent cells of 
-                    // boggle[i][j] 
-                    if (isSafe(i + 1, j + 1, visited) 
-                        && boggle[i + 1][j + 1] == ch) 
+                    // Recursively search 8 squares around chosen square
+                    if (checkCurrentSquare(i + 1, j + 1, visited) 
+                        && boggle[i + 1][j + 1] == character) 
                         searchWord(root.Child[K], boggle, 
                                    i + 1, j + 1, 
-                                   visited, str + ch); 
-                    if (isSafe(i, j + 1, visited) 
-                        && boggle[i][j + 1] == ch) 
+                                   visited, str + character); 
+                    if (checkCurrentSquare(i, j + 1, visited) 
+                        && boggle[i][j + 1] == character) 
                         searchWord(root.Child[K], boggle, 
                                    i, j + 1, 
-                                   visited, str + ch); 
-                    if (isSafe(i - 1, j + 1, visited) 
-                        && boggle[i - 1][j + 1] == ch) 
+                                   visited, str + character); 
+                    if (checkCurrentSquare(i - 1, j + 1, visited) 
+                        && boggle[i - 1][j + 1] == character) 
                         searchWord(root.Child[K], boggle, 
                                    i - 1, j + 1, 
-                                   visited, str + ch); 
-                    if (isSafe(i + 1, j, visited) 
-                        && boggle[i + 1][j] == ch) 
+                                   visited, str + character); 
+                    if (checkCurrentSquare(i + 1, j, visited) 
+                        && boggle[i + 1][j] == character) 
                         searchWord(root.Child[K], boggle, 
                                    i + 1, j, 
-                                   visited, str + ch); 
-                    if (isSafe(i + 1, j - 1, visited) 
-                        && boggle[i + 1][j - 1] == ch) 
+                                   visited, str + character); 
+                    if (checkCurrentSquare(i + 1, j - 1, visited) 
+                        && boggle[i + 1][j - 1] == character) 
                         searchWord(root.Child[K], boggle, 
                                    i + 1, j - 1, 
-                                   visited, str + ch); 
-                    if (isSafe(i, j - 1, visited) 
-                        && boggle[i][j - 1] == ch) 
+                                   visited, str + character); 
+                    if (checkCurrentSquare(i, j - 1, visited) 
+                        && boggle[i][j - 1] == character) 
                         searchWord(root.Child[K], boggle, 
                                    i, j - 1, 
-                                   visited, str + ch); 
-                    if (isSafe(i - 1, j - 1, visited) 
-                        && boggle[i - 1][j - 1] == ch) 
+                                   visited, str + character); 
+                    if (checkCurrentSquare(i - 1, j - 1, visited) 
+                        && boggle[i - 1][j - 1] == character) 
                         searchWord(root.Child[K], boggle, 
                                    i - 1, j - 1, 
-                                   visited, str + ch); 
-                    if (isSafe(i - 1, j, visited) 
-                        && boggle[i - 1][j] == ch) 
+                                   visited, str + character); 
+                    if (checkCurrentSquare(i - 1, j, visited) 
+                        && boggle[i - 1][j] == character) 
                         searchWord(root.Child[K], boggle, 
                                    i - 1, j, 
-                                   visited, str + ch); 
+                                   visited, str + character); 
                 } 
             } 
   
-            // make current element unvisited 
+            // make current square unvisited 
             visited[i][j] = false; 
         } 
     } 
 
-    static boolean isSafe(int i, int j, boolean visited[][]) 
-    { 
+    static boolean checkCurrentSquare(int i, int j, boolean visited[][]) { 
         return (i >= 0 && i < boardSize && j >= 0
                 && j < boardSize && !visited[i][j]); 
     } 
