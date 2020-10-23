@@ -1,26 +1,26 @@
 
 {
-    "gameModes": ["Standard", "Battle", "Foggle"],
+    "gameModes": ["standard", "battle", "foggle"],
     "boardSizes": ["4x4", "5x5"],
     "diceUse": ["once", "generous"],
     "languages": ["english", "spanish"],
     
 
-    "Standard": {
+    "standard": {
         "sizes" : ["4x4", "5x5"],
         "diceUses": ["once", "generous"],
         "wordUses": ["multiple"],
         "modeType": ["alphabetic"]
     },
 
-    "Battle" : {
+    "battle" : {
         "sizes" : ["4x4", "5x5"],
         "diceUses": ["once", "generous"],
         "wordUses": ["once"],
         "modeType": ["alphabetic"]
     },
 
-    "Foggle" : {
+    "foggle" : {
         "sizes" : ["4x4"],
         "diceUses": ["once", "generous"],
         "wordUses": ["multiple"],

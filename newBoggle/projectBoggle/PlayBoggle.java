@@ -16,6 +16,9 @@ class PlayBoggle {
 // TODO: Restructure the logic of gameController
 // TODO: Make sure QU is counted correctly in the smart search
 // TODO: Make sure smart search can handle generous boggle.
+// TODO: Overwrite the large dictionary with the small to keep memory,
+//      or clear it if numeric mode.
+// TODO: CLEAR all messages after end for server side, its still waiting for input
 
 // BUGGAR:
-//  1. Skickar man in "A" eller icke siffra som antar players i settings så castas NumberFormatException
+//  TODO: Skickar man in "A" eller icke siffra som antar players i settings så castas NumberFormatException

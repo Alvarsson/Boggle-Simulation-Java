@@ -29,17 +29,25 @@ public class ConnectClient {
 						try {
 							String message = (String) inFromServer.readObject();
 							if(message.equals("CLOSE SOCKET")) {
+                                System.out.println("Socket closed");
                                 run=false;
                                 in.close();
-                                socket.close();
 
+                                socket.close();
+                                System.out.println("Client socket closed");
                                 System.exit(0);
+                                
 							}
 							System.out.println(message);					
-						} catch (Exception e) {
-							System.out.println("Socket has closed");
+						} catch (ClassNotFoundException e) {
+                            System.out.println("Socket not found");
 							System.exit(0);
-						}						
+                        } catch (IOException e) {
+                            System.out.println("Socket has closed");
+							System.exit(0);
+                        }
+							
+												
 					}
 				}
 

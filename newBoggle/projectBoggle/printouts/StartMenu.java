@@ -25,8 +25,8 @@ public class StartMenu {
         for (String game: mode.getAllModes()) {
             menu += "* ["+ game + "] Play standard "+ game +"      \n";
         }
-        return menu += "* [Settings] Settings                \n" +
-        "* [Quit] Quit                        \n" +
+        return menu += "* [settings] Settings                \n" +
+        "* [quit] Quit                        \n" +
         "**************************************\n";
     }
 

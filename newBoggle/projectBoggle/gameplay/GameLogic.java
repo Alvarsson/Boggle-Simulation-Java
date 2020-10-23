@@ -33,7 +33,28 @@ public class GameLogic {
             returnRow = (returnColumn == 0 ? returnRow + 1 : returnRow);
         }
         return returnBoggle;
-    }
+    } 
+    // Using Fisher Yates algo for randomizing. Modded for 2D
+    /* static String[][] randomizeBoard(String[][] board) {
+        
+        Random rnd = new Random();
+        int size = (int) Math.sqrt(board.length);
+        for(int i = size -1; i > 0; i--) {
+            for (int j = board[i].length - 1; j > 0; j--) {
+                int row = rnd.nextInt(i+1);
+                int col = rnd.nextInt(j+1);
+                String temp = board[i][j];
+                board[i][j] = board[row][col];
+                board[row][col] = temp;
+            }
+        }
+        for(int i = 0; i< size; i++) {
+            for(int j = 0; j< size; j++) {
+                System.out.println(board[i][j]);
+            }
+        } 
+        return board;
+    } */
 
     Boolean checkWordFree(String input, Player player, GameModes mode, ArrayList<String> wordList)
             throws FileNotFoundException, JSONException, IOException {

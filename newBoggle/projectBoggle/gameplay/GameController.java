@@ -38,7 +38,6 @@ public class GameController {
         }
     }
 
-    // need to check that number of players > 1 
     private static void startServer(int port, int players) throws IOException{
         try {
             serverSocket = new ServerSocket(port);
@@ -51,6 +50,7 @@ public class GameController {
                 System.out.println("Player " + i + " connected.");
                 outToClient.writeObject("You connected to the server as player " + i);
             }
+            running = true;
             
         } catch (IOException e) { 
             throw new IOException("Couldn't start server. Exception thrown: "+e); 
@@ -60,7 +60,7 @@ public class GameController {
     private static void createLocalHost() {
             playerArray.add(new LocalPlayer(0, null, null, null));
     }
-  
+    //TODO: YES I SHOULD DO THIS REGARDING TESTABILITY
     /* private static void addClientPlayer(Socket socket, ObjectInputStream in, ObjectOutputStream out) {
         playerArray.add(new ClientPlayer(1,socket,in,out)); // TEST WITH ID 1
     } */
@@ -77,10 +77,9 @@ public class GameController {
         while(running){
             String userWord = messages.readMessage(player);
             //How to check rules in a general way? Maybe by checking mode.gameMode?
-            //TODO: refactor this into lower tree complexity
             if (logic.checkWordFree(userWord, player, mode, wordList)) {
                 if (logic.checkWordValid(userWord, mode, gameDict)) { 
-                    // check if numbers
+                    // check if numbers game
                     if (mode.loadJsonGameMode(mode.getGameMode(), "modeType").contains("numeric")) {
                         messages.sendMessage(logic.isExpressionOnBoard(userWord, boggleBoard,mode), player);
                     } else {
@@ -103,7 +102,7 @@ public class GameController {
     }
 
     private static void userChoice(String choice, GameModes mode, Scanner in) throws FileNotFoundException, IOException, InterruptedException, ScriptException {
-        if (choice.equals("Settings")) {
+        if (choice.equals("settings")) {
             StartMenu.printSettings(mode);
             String settingsChoice = in.nextLine();
             String [] setter = settingsChoice.split(" ", 2);
@@ -119,7 +118,6 @@ public class GameController {
                     }
             } else if (setter[1].equals("lang")) {
                 if (checkSettings(mode.loadJsonSettings("languages"), setter[0])) {
-                    System.out.println("teteteY");
                     mode.setLanguage(setter[0]);
                 }
             } else if (setter[1].equals("solution")) {
@@ -143,19 +141,20 @@ public class GameController {
                     System.out.println("Must be 1 or more seconds.");
                 }
             }
-        } else if (choice.equals("Quit")) {
+        } else if (choice.equals("quit")) {
             System.out.println("BYE BYE");
             menuRun = false;
+            System.exit(0);
         } else if (checkSettings(mode.loadJsonSettings("gameModes"), choice)) {
             mode.setGameMode(choice);
             boggleBoard = GameLogic.randomizeBoard(BoggleBoards.getBoggleBoard(mode.getGameMode(), mode.getBoardSize()));
             if (!mode.loadJsonGameMode(mode.getGameMode(), "modeType").contains("numeric")) {
-                SmartSearch newdict = new SmartSearch(dictionary, boggleBoard, boggleBoard.length);
+                SmartSearch newdict = new SmartSearch(dictionary, boggleBoard, boggleBoard.length, mode.getGenerous());
+                //give to dictionary instead.
                 gameDict = newdict.getCurrentDict();
             }
             createLocalHost();
             startServer(PORT, mode.getNumberOfPlayers());
-            running = true;
             startThreads(choice, mode);
             GameLogic.printEndScore(playerArray);
             endGame(); 
@@ -184,7 +183,6 @@ public class GameController {
                         runGame(aPlayer, mode, boggleBoard);
                     } catch (IOException e) {
                         e.printStackTrace();
-                        //System.out.println("IOException thrown, couldn't start game");
                     } catch (ScriptException e) {
                         new ScriptException("Error evaluating expression: "+e);
                     }
@@ -196,14 +194,18 @@ public class GameController {
         running = false;
         threadpool.shutdownNow();
     }
+
     static void endGame() throws IOException {
         Communication msg = new Communication();
         for (Player player : playerArray){
             try {
                 if (player.getId() != 0) {
+                    player.getOutput().flush();
+                    player.getInput().close();
                     msg.sendMessage("CLOSE SOCKET", player);
                     player.getSocket().close();
-                }
+                } 
+
             } catch (IOException e) {
                 e.printStackTrace();
             }

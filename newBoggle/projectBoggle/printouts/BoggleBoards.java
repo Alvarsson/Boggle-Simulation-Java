@@ -61,16 +61,17 @@ public class BoggleBoards {
     {"3", "4", "5", "6", "7", "8"},
     {"1", "2", "4", "7", "8", "0"}};
 
+    //TODO: fix so we look for mode type?
     public static String[][] getBoggleBoard(String mode, String size) {
             String[] sizeSplit = size.split("x");
             String [][] boggleBoard =  new String[Integer.parseInt(sizeSplit[0])] [Integer.parseInt(sizeSplit[1])];
-            if (mode.equals("Standard") || mode.equals("Battle")) {
+            if (mode.equals("standard") || mode.equals("battle")) {
                 if (size.equals("4x4")) {
                     boggleBoard = boggle16;
                 } else {
                     boggleBoard = boggle25;
                 }
-            } else if (mode.equals("Foggle")) {
+            } else if (mode.equals("foggle")) {
                 boggleBoard = foggle16;
             } 
             return boggleBoard;
