@@ -1,0 +1,14 @@
+projectBoggle//modes/GameModes.java
+projectBoggle//tests/Tests.java
+projectBoggle//gameplay/GameController.java
+projectBoggle//gameplay/GameLogic.java
+projectBoggle//gameplay/gridsolvers/SmartSearch.java
+projectBoggle//printouts/BoggleBoards.java
+projectBoggle//printouts/StartMenu.java
+projectBoggle//ConnectClient.java
+projectBoggle//communication/MessageParser.java
+projectBoggle//communication/Communication.java
+projectBoggle//PlayBoggle.java
+projectBoggle//player/ClientPlayer.java
+projectBoggle//player/LocalPlayer.java
+projectBoggle//player/Player.java
